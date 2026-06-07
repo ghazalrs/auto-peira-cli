@@ -1,1 +1,482 @@
-Replace the contents of this file with the prompt you want to send to each model.
+INTRODUCTION
+
+I am asking you to perform a series of tasks aimed at evaluating a conceptual modeling language for describing human intentions. You will specifically evaluate the vocabulary of terms which the language uses for representing concepts. My goal is to decide if the vocabulary is well chosen or not.
+
+I continue with a description of the proposed language.
+
+
+THE LANGUAGE
+
+Name of Language: iStar-RL
+
+Overview and Motivation: iStar-RL is a goal-oriented language for modeling reinforcement learning agents. When designing reinforcement learning agents, we need to somehow describe the available actions, outcomes, and quality or preferability of outcomes. iStar-RL is a high-level conceptual modeling language that allows us to define exactly that. As in most conceptual modeling languages, there are two categories of concepts: entities, which are distinct types of individuals to be modeled, and relationships, which represent an association or interaction between two or more entities.
+
+Language Concepts:
+The entities of iStar-RL are:
+        - Actors
+        - Goals
+        - Tasks
+        - Effects (satisfying)
+        - Effects (non-satisfying)
+        - Effects (indirect)
+        - Qualities
+        - Pre-Effects
+        - Pre-Qualities
+
+The relationships supported by iStar-RL are:
+        - wants-to
+        - is-AND-refined-to
+        - is-OR-refined-to
+        - affects (deterministically)
+        - affects (non-deterministically)
+        - contributes-to (positively)
+        - contributes-to (negatively)
+        - contributes-to (with no special positive or negative quality)
+        - precedes
+
+Detailed Description of Concepts:
+
+Actor (entity): An actor is an active, autonomous entity that holds beliefs and aims at achieving goals. It can be, for example, a human or, more likely in our case, an artificial intelligence system. Examples of actors include:
+        - Student (in an education context),
+        - Nurse (in a health care context),
+        - Participant (in a scientific study like this one),
+        - Flight controller (in an aviation context).
+
+Goal (entity): Goals are states of affairs that an actor wants to achieve. Here are some examples:
+        - Have Course Requirements Fulfilled,
+        - Have Book Acquired,
+        - Have Medical Test Completed,
+        - Have Medical Supplies Replenished,
+        - Have Experimental Tasks Accomplished.
+
+Task (entity): A task is an attempt at an action by an actor, usually with the purpose of achieving some goal. Here are some examples of tasks:
+        - Enroll Course,
+        - Complete Homework Assignment,
+        - Write Exam,
+        - Acquire Blood Sample,
+        - Order Supplies Online,
+        - Purchase Supplies in Person from the Store.
+
+
+wants-to (relationship): We use the relationship "wants-to" to signify that an actor wants a goal achieved or a task performed. For example:
+        - "Student" wants-to "Have Course Requirements Fulfilled"
+        - "Student" wants-to "Have Book Acquired"
+
+is-AND-refined-to (relationship): The relationship "is-AND-refined-to" shows how a goal can be decomposed into multiple goals or tasks. All of the child goals and/or tasks must be satisfied (or successfully performed) for the parent goal to be fulfilled. For example, to achieve the goal "Course Requirements Fulfilled", a student needs to enroll in the course, complete the homework assignment, and write the exam. All of these need to be performed, so it is an AND-refinement:
+        - "Course Requirements Fulfilled" is-AND-refined-to "Enroll Course", "Complete Homework Assignment", "Write Exam".
+
+is-OR-refined-to (relationship): The relationship "is-OR-refined-to" shows how a goal can be decomposed into alternative subgoals or tasks. Fulfillment or successful performance of just one child is sufficient for the fulfillment of the parent goal. For example, to fulfill the goal "Have Supplies Replenished", an inventory manager may "Order Supplies Online" or "Purchase Supplies in Person from the Store". Either one suffices:
+        - "Have Supplies Replenished" is-OR-refined-to "Order Supplies Online", "Purchase Supplies in Person from Store"
+
+Quality (entity): A quality is an attribute for which an actor desires some level of achievement. For example:
+        - "Develop New Skills"
+        - "Reduce Costs"
+        - "Expedite Delivery"
+
+As opposed to goals, qualities do not have a clear-cut definition, i.e., a way to unambiguously decide when they are satisfied or not. Rather, qualities are assumed to be satisfied to some degree based on what tasks actors perform. We represent this through contribution relationships. When we say that an origin element "contributes-to" a target element, we denote that performance or satisfaction of the origin affects satisfaction of the target. Targets of contribution links are always qualities. Origins of contribution links can be goals, tasks, effects, or other qualities.
+
+We specifically have the following types of contributes-to relationships:
+
+contributes-to (positively) (relationship): We use "contributes-to (positively)" if we know that satisfaction or performance of the origin supports the satisfaction of the destination. The following example expresses that purchasing online (versus going to the local store) is typically cheaper:
+        - "Order Supplies Online" contributes-to (positively) "Reduce Costs"
+        - "Eligible for Scholarship" contributes-to (positively) "Maximize Financial Support"
+
+contributes-to (negatively) (relationship): We use "contributes-to (negatively)" if we know that satisfaction or performance of the origin hurts the satisfaction of the destination. For example, ordering online implies delivery delays when compared with shopping at the local store:
+        - "Order Supplies Online" contributes-to (negatively) "Expedite Delivery"
+
+contributes-to (relationship): We use plain "contributes-to" if satisfaction or performance of the origin has an unspecified, unknown, or complex effect on the satisfaction of the destination:
+        - "Purchase Supplies Online" contributes-to "Product Quality"
+
+To describe states of affairs that emerge from the performance of a task, we use effects. For example, the task "Write Exam" has possible effects: "Exam Passed with High Grade", "Exam Passed with OK Grade", "Exam Failed", and "Participation Was Not Possible". These effects form the effect group of the task. We represent the relationship between tasks and effects through the "affects (non-deterministically)" relationship.
+
+affects (non-deterministic) (relationship): We use an "affects (non-deterministic)" relationship to relate a task to a group of effects that may come about once the task is performed:
+        - "Write Exam" affects (non-deterministically) "Exam Passed with High Grade", "Exam Passed with OK Grade", "Exam Failed", "Participation Was Not Possible".
+
+When a task brings about only one effect, or if an effect has a unique other indirect effect (more below), the deterministic version of the affects relationship is used:
+
+affects (deterministic) (relationship): We use an "affects (deterministic)" relationship to relate a task or effect to a single (other) effect:
+        - "Exam Passed with High Grade" affects (deterministically) "Eligible for Scholarship" (here both entities connected are effects).
+        - "Write Exam" affects (deterministically) "Eligible for Student Loan"
+
+Not all effects have the same status in a group of effects with respect to a task. If a student's task is to "Write Exam", the first three of the outcomes signify accomplishment of the task. The exam was written even if it was failed. So the first three effects are what we call task-satisfying effects: when they occur, the parent task can be considered accomplished. However, the fourth effect, "Participation Was Not Possible", is non-satisfying of the task. For whatever logistical reason, the student was not able to participate (e.g., they did not have their name on the examinee list), so the exam was not actually written.
+
+To summarize, we have the following types of effects:
+
+Effect (satisfying) (entity): An effect (satisfying) describes an outcome of a task that signifies successful performance of the task. For example:
+        - "Exam Passed with OK Grade"
+        - "Exam Passed with High Grade"
+
+Effect (non-satisfying) (entity): An effect (non-satisfying) describes an outcome of a task that signifies failure of the task. For example:
+        - "Participation Was Not Possible"
+
+We use a separate entity to represent effects that are caused by other effects:
+
+Effect (indirect) (entity): An effect (indirect) describes an outcome that is the indirect result of some other effect. For example:
+        - "Eligible for Scholarship" (as an indirect effect of another effect "Exam Passed with High Grade")
+
+Note that we refer to effects as entities to denote that they are unary. Effects represent features of states of the world. From that viewpoint they are indistinguishable from goals (also features of states of the world), except that goals are marked as desired by an actor.
+
+We use precedence constraints to describe restrictions on the order in which tasks are to be performed in time. When a goal, task, or effect is the origin of a "precedes" relationship with a task, that task cannot be performed unless the origin goal is satisfied, the origin task has been performed, or the origin effect has occurred.
+
+precedes (relationship): A goal, task, or effect needs to be satisfied, performed, or true before a target task can be performed. For example:
+        - "Write Exam" precedes "Dispute Grade"
+        - "Exam Passed with High Grade" precedes "Take More Advanced Course"
+
+The final entities to consider are pre-effects and pre-qualities. Let us see an example to understand pre-effects. Consider a robotic agent that performs a simple task of pressing a light switch. Once pressed, the light switch will turn the lights of a room on if they were off, or turn them off if they were on. So what would the outcome of the task "Press Switch" be? We use a pre-effect element to describe the state of the environment before a task was performed. In our example, we use a pre-effect to describe the status of the lights as it was before the current press of the switch button. This pre-effect, together with the effect of the current press action, will determine the indirect effect of whether the lights will be on or off. Hence, the robot presses the button, and the pressing will most likely succeed.
+
+The same idea can be applied to qualities. Suppose that my quality is to "Improve Understanding of iStar-RL", the language we discuss here. Every time I read this text it may add to or subtract from my understanding of the language. In other words, my new understanding of iStar-RL will be based on my previous understanding of iStar-RL plus or minus the effect that reading the text had on my understanding. We represent this by adding "Improve Understanding of iStar-RL" as a pre-quality element in our model.
+
+Pre-Effect (entity): The previous state of an effect.
+
+Pre-Quality (entity): The previous state of a quality.
+
+Pre-effects and pre-qualities are connected with other elements using the same relationships that effects and qualities use, except that pre-effects and pre-qualities serve as origins in those relationships. In a model, the same description may appear as both an effect and a pre-effect, or as both a quality and a pre-quality. However, a pre-quality cannot be the destination of a contributes-to relationship, and a pre-effect cannot be the destination of an affects relationship.
+
+
+EXERCISES
+
+Based on the language discussed above, please now solve the following exercises. Return your answers strictly as a JSON object. Do not include markdown formatting, code fences, explanations, preamble, or any surrounding text. Your entire response must be valid JSON that can be parsed directly.
+
+
+Exercise 1
+
+Based on the language tutorial above, answer the following questions.
+
+conceptUnderstandingDefn: Please match each of the following definitions with the entity it defines. For each sub-question, choose exactly one answer from the numbered option list.
+
+Option list:
+1 = Actor
+2 = Goal
+3 = Task
+4 = Effect (task satisfying)
+5 = Effect (task non-satisfying)
+6 = Effect (indirect)
+7 = Pre-Effect
+8 = Quality
+9 = Pre-Quality
+
+Sub-questions:
+1. "An attempt at an action by an actor, usually with the purpose of achieving some goal"
+2. "An outcome of an action attempt (task) that constitutes successful execution of the action"
+3. "An attribute for which an actor desires some level of achievement"
+4. "The level of achievement of a quality before the latest action"
+
+conceptUnderstandingExample: Please match each of the following examples with the entity it may exemplify. For each sub-question, choose exactly one answer from the same option list above (1–9).
+
+Sub-questions:
+1. "Have Medical Supplies Replenished"
+2. "Order Did Not Go Through"
+3. "Stock Was Below Reorder Point (before submitting a customer order)"
+4. "Expedite Delivery"
+
+relationshipUnderstandingDefn: Please match each of the following definitions with the relationship it defines. For each sub-question, choose exactly one answer from the numbered option list.
+
+Option list:
+1 = wants-to
+2 = is-AND-refined-to
+3 = is-OR-refined-to
+4 = affects (non-deterministically)
+5 = affects (deterministically)
+6 = positively-contributes-to
+7 = negatively-contributes-to
+8 = contributes-to
+9 = precedes
+
+Sub-questions:
+1. "A goal is decomposed into multiple tasks, performance of all of which is necessary for the fulfillment of the parent goal"
+2. "The origin of the link, a task, brings about, upon its attempt, one of the effects of an effect group"
+3. "The origin of the link (task or effect), brings about, upon its attempt or occurrence, an (other) effect"
+4. "Satisfaction of the origin affects the satisfaction of the destination (in an unknown or complicated way)"
+
+relationshipUnderstandingExample: Please match each of the following examples with the relationship it exemplifies. For each sub-question, choose exactly one answer from the same relationship option list above (1–9).
+
+Sub-questions:
+1. Medical Supplies Arranged _____________ Place Order, Pay for Order
+2. Medical Supplies Arranged _____________ Order On-Line, Buy in Person
+3. Order Supplies Online _____________ Order Successfully Received, Order Submission Failed
+4. Order Supplies Online _____________ Product Quality
+
+
+Answer format for Exercise 1:
+In the format below, each YOUR_NUMBER_HERE is a placeholder for the option number you choose (an integer from 1 to 9) — it is not a default or a hint at the correct answer. Each "responses" array holds one chosen number per sub-question, in order, and "justifications" holds the matching explanation for each. Replace every YOUR_NUMBER_HERE and every "YOUR_REASON_HERE" with your actual answer; "responses" is a list of four chosen numbers that you must populate yourself.
+{
+  "exercise1": {
+    "conceptUnderstandingDefn": {
+      "responses": [YOUR_NUMBER_HERE, YOUR_NUMBER_HERE, YOUR_NUMBER_HERE, YOUR_NUMBER_HERE],
+      "justifications": ["YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE"]
+    },
+    "conceptUnderstandingExample": {
+      "responses": [YOUR_NUMBER_HERE, YOUR_NUMBER_HERE, YOUR_NUMBER_HERE, YOUR_NUMBER_HERE],
+      "justifications": ["YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE"]
+    },
+    "relationshipUnderstandingDefn": {
+      "responses": [YOUR_NUMBER_HERE, YOUR_NUMBER_HERE, YOUR_NUMBER_HERE, YOUR_NUMBER_HERE],
+      "justifications": ["YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE"]
+    },
+    "relationshipUnderstandingExample": {
+      "responses": [YOUR_NUMBER_HERE, YOUR_NUMBER_HERE, YOUR_NUMBER_HERE, YOUR_NUMBER_HERE],
+      "justifications": ["YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE"]
+    }
+  }
+}
+
+
+Exercise 2: Overlap Analysis
+
+Before we start with the main exercises, I would like to know if you think there are overlaps between pairs of the concepts and relationships you were just presented. I offer the pairs below. For each pair, rate how much you think the two concepts in the pair overlap, i.e., refer to the same thing. Choose any level from 0 to 10, where 0 means No Overlap (the concepts in the pair are completely distinct) and 10 means Complete Overlap (the concepts in the pair refer to the same thing in different words).
+
+For example, if I am asked whether "Furniture" and "Activity" have any overlap, I cannot observe any: there are no things that are both Furniture and Activity, so these are completely different unrelated concepts (score: 0). However, if I am asked whether "Smart" and "Intelligent" have an overlap, I would say yes: there are things that if you classify them under Smart you are likely to also classify them under Intelligent and vice versa; the terms have a very similar if not the same meaning (score: 9 or 10). Note that overlap refers to semantic similarity, not whether the concepts can be connected in a model.
+
+Part 1 — Entity pairs: For each pair, provide an overlap score from 0 to 10.
+1. Actor and Goal
+2. Actor and Task
+3. Actor and Effect (either of: satisfying, non-satisfying, indirect)
+4. Actor and Quality
+5. Goal and Task
+6. Goal and Effect (either of: satisfying, non-satisfying, indirect)
+7. Goal and Quality
+8. Task and Effect (either of: satisfying, non-satisfying, indirect)
+9. Task and Quality
+10. Effect (either of: satisfying, non-satisfying, indirect) and Quality
+
+Part 2 — Relationship pairs: For each pair, provide an overlap score from 0 to 10.
+1. wants-to and is-AND-refined-to
+2. wants-to and is-OR-refined-to
+3. wants-to and affects (either of: deterministically or non-deterministically)
+4. wants-to and contributes-to (either of: positive, negative or unspecified)
+5. wants-to and precedes
+6. is-AND-refined-to and is-OR-refined-to
+7. is-AND-refined-to and affects (either of: deterministically or non-deterministically)
+8. is-AND-refined-to and contributes-to (either of: positive, negative or unspecified)
+9. is-AND-refined-to and precedes
+10. is-OR-refined-to and affects (either of: deterministically or non-deterministically)
+11. is-OR-refined-to and contributes-to (either of: positive, negative or unspecified)
+12. is-OR-refined-to and precedes
+13. affects (either of: deterministically or non-deterministically) and contributes-to (either of: positive, negative or unspecified)
+14. affects (either of: deterministically or non-deterministically) and precedes
+15. contributes-to (either of: positive, negative or unspecified) and precedes
+
+
+Answer format for Exercise 2:
+In the format below, each YOUR_SCORE_HERE is a placeholder for the overlap score you choose (an integer from 0 to 10) — it is not a default value. Provide one score per pair, in the order the pairs are listed, with a matching explanation in "justifications". Replace every YOUR_SCORE_HERE and every "YOUR_REASON_HERE" with your actual answer; each "responses" array is a list you must populate with one score per pair.
+{
+  "exercise2": {
+    "entityOverlap": {
+      "responses": [YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE],
+      "justifications": ["YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE"]
+    },
+    "relationshipOverlap": {
+      "responses": [YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE, YOUR_SCORE_HERE],
+      "justifications": ["YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE", "YOUR_REASON_HERE"]
+    }
+  }
+}
+
+
+Exercise 3: Classifications — Case I
+
+In this exercise you will be given a case description, and then asked to classify parts of the case description to one or more of the elements of the vocabulary under investigation.
+
+The present case is about a temperature controller, which controls the temperature of a room by turning a heater on or off. The passage below describes the case in detail.
+
+We are modeling a temperature controller. The temperature controller is an autonomous decision-making system. The controller's purpose is to have the temperature of a room controlled at all times. To do so, it sends periodic signals that turn on or off the heater. Specifically, the controller may choose to send an on signal or to send an off signal to the heater. These signals are sent wirelessly to the heater, so they are not always received. Thus, when an on signal is sent, the outcome can be that the on-signal succeeded or that the on-signal failed. Likewise, the outcome of an off signal can be off-signal succeeded or off-signal failed. Whether the heater is ultimately on depends on which of those outcomes comes about as well as whether the heater was previously on. The temperature controller sends on and off signals aimed at satisfying some high-level objectives of the occupants of the room. One objective is to maximize comfort by maintaining the ideal temperature in the room. Whether the ideal temperature is maintained depends on whether it was maintained in the previous stage and on whether the heater was on or off in the meantime. At the same time, the controller wants to ensure that the heater does not stay unnecessarily on for a long period of time. It does that aimed at minimizing cost.
+
+
+Case I Entities
+
+Based on your understanding of the language and the case description above (Case I: Heating Controller), classify each of the following expressions to one or more entities that best describe it. Some expressions may reasonably map to more than one entity; please select all that apply. Select "None" only if you think that none of the listed entities describes the expression well.
+
+Entity option list (use these exact codes in your response):
+  actor = Actor
+  goal = Goal
+  task = Task
+  eff-sat = Effect (task satisfying)
+  eff-nonsat = Effect (task non-satisfying)
+  eff-ind = Effect (indirect)
+  eff-pre = Pre-Effect
+  qual = Quality
+  qual-pre = Pre-Quality
+  None = None of the above
+
+For each item below, provide one or more codes from the list above as a JSON array (e.g., ["actor"] or ["eff-sat", "eff-ind"]).
+
+iRL_ent_therm_1: "Temperature Controller"
+iRL_ent_therm_2: "Have Temperature Controlled"
+iRL_ent_therm_3: "Send On Signal"
+iRL_ent_therm_4: "On Signal Succeeded"
+iRL_ent_therm_5: "On Signal Failed"
+iRL_ent_therm_6: "Heater is On"
+iRL_ent_therm_7: "Heater Was Previously On"
+iRL_ent_therm_8: "Maximize Comfort"
+iRL_ent_therm_9: "Maintain Ideal Temperature (previous stage)"
+
+
+Case I Relationships
+
+Based on your understanding of the language and the case description above (Case I: Heating Controller), classify each of the following expressions to one or more relationships that best describe it. Some expressions may reasonably map to more than one relationship; please select all that apply. Select "None" only if you think that none of the listed relationships describes the expression well.
+
+Relationship option list (use these exact codes in your response):
+  wants = wants-to
+  and = is-AND-refined-to
+  or = is-OR-refined-to
+  eff-link-nondet = affects (non-deterministically)
+  eff-link-det = affects (deterministically)
+  contr-pos = contributes-to (positively)
+  contr-neg = contributes-to (negatively)
+  contr = contributes-to
+  pre = precedes
+  None = None of the above
+
+For each item below, provide one or more codes from the list above as a JSON array.
+
+iRL_rel_therm_1: "Have Temperature Controlled __________ Send On Signal, Send Off Signal"
+iRL_rel_therm_2: "Send On Signal __________ On Signal Succeeded, On Signal Failed"
+iRL_rel_therm_3: "Send Off Signal __________ Off Signal Succeeded, Off Signal Failed"
+iRL_rel_therm_4: "Heater Was Previously On __________ Heater Is On"
+iRL_rel_therm_5: "On Signal Succeeded __________ Heater Is On"
+iRL_rel_therm_6: "On Signal Failed __________ Heater Is On"
+iRL_rel_therm_7: "Heater Is On __________ Minimize Running Time"
+iRL_rel_therm_8: "Maintain Ideal Temperature (previous stage) __________ Maintain Ideal Temperature (current stage)"
+iRL_rel_therm_9: "Heater Is On __________ Maintain Ideal Temperature (current stage)"
+iRL_rel_therm_10: "Temperature Controller __________ Have Temperature Controlled"
+
+
+Answer format for Exercise 3:
+In the format below, every "YOUR_CODE_HERE" and every "YOUR_JUSTIFICATION_HERE" is a placeholder — replace them with your actual code(s) from the entity or relationship option list and your actual explanation. Each "responses" value is a list that you must populate yourself with ONE OR MORE codes from the option list; the template mixes single-code and multi-code entries only to show that both are valid, NOT to indicate how many codes any particular item should receive. Keep every item ID shown and provide an answer for each.
+{
+  "exercise3": {
+    "entities": {
+      "iRL_ent_therm_1": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_therm_2": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_therm_3": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_therm_4": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_therm_5": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_therm_6": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_therm_7": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_therm_8": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_therm_9": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" }
+    },
+    "relationships": {
+      "iRL_rel_therm_1": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_therm_2": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_therm_3": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_therm_4": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_therm_5": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_therm_6": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_therm_7": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_therm_8": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_therm_9": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_therm_10": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" }
+    }
+  }
+}
+
+
+Exercise 4: Classifications — Case II
+
+In this exercise you are given another case description, and then asked to classify parts of the case description to one or more of the elements of the vocabulary under investigation.
+
+The case is about an engine manufacturer.
+
+Powerful Engines Inc. is an Engine Manufacturer located in North America. They design and assemble small combustion engines for a small customer list of power tool manufacturers, with many of whom they have long-term contracts. Every time one of those customers places an order, the Engine Manufacturer needs to Have that Order Fulfilled by a strict deadline. To do so, they need to do two things. First, they need to Acquire the Parts necessary for assembling the engine from a variety of suppliers. The parts may be Acquired in Time, may be Acquired Late, or they may be Never Acquired before the absolute deadline. In the latter case, the Order is Cancelled because the company cannot honor the time commitment to the client. According to the contract, a Penalty is Issued for two consecutive cancellations. In other words, a Penalty is Issued if the current order is cancelled and the previous order was also cancelled. Once the parts are acquired, the manufacturer is then able to Have the Engine Assembled. They have two options here. They can Assemble the Engine in House using their specialized high-quality facilities, or they can choose to Outsource Assembly in order to cut costs for the customer. Although choosing to Outsource Assembly is cheaper, it is also a gamble: the result may be Good Construction Quality or Bad Construction Quality. The manufacturer is very conscious of their reputation. Their Reputation level after dealing with an order depends on the level of Reputation they already enjoyed before, minus the loss in reputation they suffer if the Order is Cancelled or the assembly results in Bad Construction Quality, but plus the boost in reputation they enjoy when the result is actually of Good Construction Quality.
+
+
+Case II Entities
+
+Based on your understanding of the language and the case description above (Case II: Engine Manufacturer), classify each of the following expressions to one or more entities that best describe it. Some expressions may reasonably map to more than one entity; please select all that apply. Select "None" only if you think that none of the listed entities describes the expression well.
+
+Entity option list (use these exact codes in your response):
+  actor = Actor
+  goal = Goal
+  task = Task
+  eff-sat = Effect (task satisfying)
+  eff-nonsat = Effect (task non-satisfying)
+  eff-ind = Effect (indirect)
+  eff-pre = Pre-Effect
+  qual = Quality
+  qual-pre = Pre-Quality
+  None = None of the above
+
+For each item below, provide one or more codes from the list above as a JSON array.
+
+iRL_ent_manu_1: "Engine Manufacturer"
+iRL_ent_manu_2: "Have Order Fulfilled"
+iRL_ent_manu_3: "Acquire Parts"
+iRL_ent_manu_4: "Have Engine Assembled"
+iRL_ent_manu_5: "Assemble Engine In House"
+iRL_ent_manu_6: "Parts Acquired in Time"
+iRL_ent_manu_7: "Parts Acquired Late"
+iRL_ent_manu_8: "Parts Never Acquired"
+iRL_ent_manu_9: "Penalty Is Issued"
+iRL_ent_manu_10: "Previous Order Was Cancelled"
+iRL_ent_manu_11: "Reputation"
+iRL_ent_manu_12: "Reputation (previous status)"
+iRL_ent_manu_13: "Construction Is of Good Quality"
+
+
+Case II Relationships
+
+Based on your understanding of the language and the case description above (Case II: Engine Manufacturer), classify each of the following expressions to one or more relationships that best describe it. Some expressions may reasonably map to more than one relationship; please select all that apply. Select "None" only if you think that none of the listed relationships describes the expression well.
+
+Relationship option list (use these exact codes in your response):
+  wants = wants-to
+  and = is-AND-refined-to
+  or = is-OR-refined-to
+  eff-link-nondet = affects (non-deterministically)
+  eff-link-det = affects (deterministically)
+  contr-pos = contributes-to (positively)
+  contr-neg = contributes-to (negatively)
+  contr = contributes-to
+  pre = precedes
+  None = None of the above
+
+For each item below, provide one or more codes from the list above as a JSON array.
+
+iRL_rel_manu_1: "Have Order Fulfilled __________ Acquire Parts, Have Engine Assembled"
+iRL_rel_manu_2: "Have Engine Assembled __________ Assemble Engine In House, Outsource Assembly"
+iRL_rel_manu_3: "Acquire Parts __________ Parts Acquired In Time, Parts Acquired Late, Parts Never Acquired"
+iRL_rel_manu_4: "Parts Never Acquired __________ Order is Cancelled"
+iRL_rel_manu_5: "Order is Cancelled __________ Penalty is Issued"
+iRL_rel_manu_6: "Previous Order Was Cancelled __________ Penalty is Issued"
+iRL_rel_manu_7: "Acquire Parts __________ Have the Engine Assembled"
+iRL_rel_manu_8: "Reputation (previous status) __________ Reputation"
+iRL_rel_manu_9: "Construction is of Good Quality __________ Reputation"
+iRL_rel_manu_10: "Construction is of Bad Quality __________ Reputation"
+
+
+Answer format for Exercise 4:
+In the format below, every "YOUR_CODE_HERE" and every "YOUR_JUSTIFICATION_HERE" is a placeholder — replace them with your actual code(s) from the entity or relationship option list and your actual explanation. Each "responses" value is a list that you must populate yourself with ONE OR MORE codes from the option list; the template mixes single-code and multi-code entries only to show that both are valid, NOT to indicate how many codes any particular item should receive. Keep every item ID shown and provide an answer for each.
+{
+  "exercise4": {
+    "entities": {
+      "iRL_ent_manu_1": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_2": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_3": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_4": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_5": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_6": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_7": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_8": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_9": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_10": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_11": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_12": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_ent_manu_13": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" }
+    },
+    "relationships": {
+      "iRL_rel_manu_1": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_manu_2": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_manu_3": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_manu_4": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_manu_5": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_manu_6": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_manu_7": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_manu_8": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_manu_9": { "responses": ["YOUR_CODE_HERE", "YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" },
+      "iRL_rel_manu_10": { "responses": ["YOUR_CODE_HERE"], "justification": "YOUR_JUSTIFICATION_HERE" }
+    }
+  }
+}
+
+
+FINAL REMINDER: Return your answers strictly as a single JSON object combining all exercises. Do not include any text outside the JSON. The top-level keys should be "exercise1", "exercise2", "exercise3", and "exercise4", following the formats shown above. Replace all example values with your actual answers.
