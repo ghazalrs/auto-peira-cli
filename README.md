@@ -1,6 +1,6 @@
 # auto-peira-cli
 
-A small command-line tool to send one research prompt to a list of OpenRouter
+A small command-line tool to send one prompt to a list of OpenRouter
 models, one at a time, and interactively follow up with a model in the same
 conversation thread if its response is incomplete or malformed.
 
@@ -34,6 +34,11 @@ It does not save anything to disk — copy/paste any output you want to keep.
 
 4. Put your research prompt in `prompt.txt`.
 
+5. (Optional) Put a standard follow-up prompt in `followup_prompt.txt` —
+   e.g. a feedback-request prompt you want to send to every model after
+   its main response. Send it verbatim at any time by typing `f`. Leave
+   the file empty/unused if you don't need this.
+
 ## Running
 
 ```bash
@@ -43,7 +48,7 @@ It does not save anything to disk — copy/paste any output you want to keep.
 Optional flags:
 
 ```bash
-./venv/bin/python3 query_models.py --prompt my_prompt.txt --models my_models.txt
+./venv/bin/python3 query_models.py --prompt my_prompt.txt --models my_models.txt --followup my_followup.txt
 ```
 
 ## How it works
@@ -57,6 +62,8 @@ For each model in `models.txt`, in order:
      provide a response to it") which is sent in the same conversation
      thread — the model sees its own prior answer and can correct or
      complete it without the original prompt being resent,
+   - type **`f`** to send the standard follow-up prompt loaded from
+     `followup_prompt.txt` verbatim (only shown if that file has content),
    - type **`skip`** to abandon the current model and move on, or
    - type **`quit`** to exit the tool entirely.
 3. Step 2 repeats until you accept or skip, then the tool moves to the next

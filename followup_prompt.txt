@@ -1,0 +1,4 @@
+Optional: put a standard follow-up prompt here (e.g. the feedback-request
+prompt from Round 2) and send it verbatim to a model by typing 'f' at the
+follow-up prompt. Leave this file empty or delete it if you don't need a
+standard follow-up.

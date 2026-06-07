@@ -4,13 +4,15 @@ interactive follow-up support in the same conversation thread.
 
 Usage:
     python3 query_models.py [--prompt prompt.txt] [--models models.txt]
+                            [--followup followup_prompt.txt]
 
 At each model:
   - The prompt is sent and the response is printed.
-  - You can then either press Enter to move to the next model, or type a
+  - You can then either press Enter to move to the next model, type a
     follow-up message (sent in the same conversation thread) to ask the
-    model to fix/complete its answer.
-  - Type 'skip' to abandon the current model and move on, or 'quit' to exit.
+    model to fix/complete its answer, type 'f' to send the standard
+    follow-up prompt loaded from --followup verbatim, type 'skip' to
+    abandon the current model and move on, or 'quit' to exit.
 
 Copy/paste any output you want to keep yourself - this tool does not save
 anything to disk.
@@ -67,7 +69,7 @@ def send_message(api_key, model, messages):
     return data["choices"][0]["message"]["content"]
 
 
-def run_conversation(api_key, model, prompt):
+def run_conversation(api_key, model, prompt, standard_followup=None):
     messages = [{"role": "user", "content": prompt}]
 
     print(f"\n{'=' * 70}\nMODEL: {model}\n{'=' * 70}")
@@ -83,10 +85,13 @@ def run_conversation(api_key, model, prompt):
     print(f"\n--- Response from {model} ---\n{reply}\n")
 
     while True:
-        user_input = input(
+        prompt_text = (
             "Press Enter to move to the next model, type a follow-up "
-            "message, 'skip' to abandon this model, or 'quit' to exit: "
-        ).strip()
+            "message, 'skip' to abandon this model, or 'quit' to exit"
+        )
+        if standard_followup:
+            prompt_text += ", or 'f' to send the standard follow-up prompt"
+        user_input = input(prompt_text + ": ").strip()
 
         if user_input == "":
             return
@@ -96,8 +101,14 @@ def run_conversation(api_key, model, prompt):
             print("Exiting.")
             sys.exit(0)
 
-        messages.append({"role": "user", "content": user_input})
-        print("\n--- Sending follow-up ---")
+        if user_input.lower() == "f" and standard_followup:
+            followup_message = standard_followup
+            print("\n--- Sending standard follow-up prompt ---")
+        else:
+            followup_message = user_input
+            print("\n--- Sending follow-up ---")
+
+        messages.append({"role": "user", "content": followup_message})
         try:
             reply = send_message(api_key, model, messages)
         except requests.exceptions.RequestException as exc:
@@ -112,6 +123,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--prompt", default="prompt.txt", help="Path to the prompt text file")
     parser.add_argument("--models", default="models.txt", help="Path to the model list file")
+    parser.add_argument(
+        "--followup",
+        default="followup_prompt.txt",
+        help="Path to an optional standard follow-up prompt file (sent via 'f')",
+    )
     args = parser.parse_args()
 
     api_key = load_api_key()
@@ -125,11 +141,20 @@ def main():
     if not models:
         sys.exit(f"Model list '{args.models}' contains no model IDs.")
 
+    standard_followup = None
+    if os.path.exists(args.followup):
+        with open(args.followup) as f:
+            text = f.read().strip()
+        if text:
+            standard_followup = text
+
     print(f"Loaded {len(models)} models from {args.models}")
     print(f"Prompt loaded from {args.prompt} ({len(prompt)} characters)")
+    if standard_followup:
+        print(f"Standard follow-up loaded from {args.followup} (send with 'f')")
 
     for model in models:
-        run_conversation(api_key, model, prompt)
+        run_conversation(api_key, model, prompt, standard_followup)
 
     print("\nAll models done.")
 
