@@ -1,0 +1,6 @@
+# One OpenRouter model ID per line, e.g.:
+# anthropic/claude-sonnet-4.6
+# openai/gpt-4o
+# google/gemini-2.5-pro
+#
+# Lines starting with # are ignored. Replace the lines below with your 22 models.
