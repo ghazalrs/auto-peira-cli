@@ -21,6 +21,7 @@ anything to disk.
 """
 
 import argparse
+import datetime
 import os
 import re
 import sys
@@ -28,6 +29,7 @@ import sys
 import requests
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
+ANALYSIS_DIR = "analysis"
 
 JUDGE_INSTRUCTIONS = """\
 You are helping a researcher review an AI model's response to a research \
@@ -129,6 +131,38 @@ def analyze_response(api_key, judge_model, prompt, response_text):
     return parse_judge_output(judge_reply)
 
 
+def save_analysis(model, prompt, response_text, action, assessment, result):
+    os.makedirs(ANALYSIS_DIR, exist_ok=True)
+    now = datetime.datetime.now()
+    safe_model = model.replace("/", "_").replace(":", "_")
+    filename = f"{safe_model}_{now.strftime('%Y%m%d_%H%M%S')}.md"
+    path = os.path.join(ANALYSIS_DIR, filename)
+
+    content = f"""# Claude's analysis for {model}
+
+**Date:** {now.isoformat(timespec="seconds")}
+
+## Original prompt
+
+{prompt}
+
+## Model's response
+
+{response_text}
+
+## Claude's assessment
+
+{assessment}
+
+## Recommended action: {action}
+
+{result}
+"""
+    with open(path, "w") as f:
+        f.write(content)
+    return path
+
+
 def run_conversation(api_key, model, prompt, standard_followup=None, judge_model=None):
     messages = [{"role": "user", "content": prompt}]
 
@@ -144,6 +178,8 @@ def run_conversation(api_key, model, prompt, standard_followup=None, judge_model
     messages.append({"role": "assistant", "content": reply})
     print(f"\n--- Response from {model} ---\n{reply}\n")
 
+    last_analysis = None
+
     while True:
         prompt_text = (
             "Press Enter to move to the next model, type a follow-up "
@@ -153,6 +189,8 @@ def run_conversation(api_key, model, prompt, standard_followup=None, judge_model
             prompt_text += ", or 'f' to send the standard follow-up prompt"
         if judge_model:
             prompt_text += ", or 'a' to have Claude analyze this response"
+        if last_analysis:
+            prompt_text += ", or 's' to save Claude's last analysis to a markdown file"
         user_input = input(prompt_text + ": ").strip()
 
         if user_input == "":
@@ -171,6 +209,15 @@ def run_conversation(api_key, model, prompt, standard_followup=None, judge_model
                 print(f"\n[ERROR] Analysis request failed: {exc}")
                 continue
 
+            last_analysis = {
+                "model": model,
+                "prompt": prompt,
+                "response_text": reply,
+                "action": action,
+                "assessment": assessment,
+                "result": result,
+            }
+
             print(f"\nClaude's assessment: {assessment}")
             if action == "CLEANUP":
                 print(
@@ -186,6 +233,11 @@ def run_conversation(api_key, model, prompt, standard_followup=None, judge_model
                 )
             else:
                 print("\nRecommended action: none — the response already looks complete and correctly formatted.")
+            continue
+
+        if user_input.lower() == "s" and last_analysis:
+            path = save_analysis(**last_analysis)
+            print(f"\nSaved Claude's analysis to {path}\n")
             continue
 
         if user_input.lower() == "f" and standard_followup:

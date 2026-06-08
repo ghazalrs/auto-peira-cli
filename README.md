@@ -92,3 +92,10 @@ against the prompt's requirements and recommends ONE of:
 - **No action** — if the response already looks complete and correct.
 
 Claude only *suggests* — you always decide what (if anything) to send.
+
+After Claude has analyzed a response, you can type **`s`** to save that
+analysis (original prompt, the model's response, Claude's assessment, the
+recommended action, and the corrected text/follow-up message) to a markdown
+file in `analysis/` (created automatically), named like
+`<model>_<timestamp>.md`. This directory is git-ignored — copy out anything
+you want to keep as part of your research record.
