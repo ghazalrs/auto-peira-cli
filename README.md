@@ -48,8 +48,11 @@ It does not save anything to disk — copy/paste any output you want to keep.
 Optional flags:
 
 ```bash
-./venv/bin/python3 query_models.py --prompt my_prompt.txt --models my_models.txt --followup my_followup.txt
+./venv/bin/python3 query_models.py --prompt my_prompt.txt --models my_models.txt \
+    --followup my_followup.txt --judge-model anthropic/claude-sonnet-4.6
 ```
+
+Pass `--judge-model ''` to disable the Claude analysis feature (see below).
 
 ## How it works
 
@@ -64,9 +67,28 @@ For each model in `models.txt`, in order:
      complete it without the original prompt being resent,
    - type **`f`** to send the standard follow-up prompt loaded from
      `followup_prompt.txt` verbatim (only shown if that file has content),
+   - type **`a`** to have Claude analyze the response (see below),
    - type **`skip`** to abandon the current model and move on, or
    - type **`quit`** to exit the tool entirely.
 3. Step 2 repeats until you accept or skip, then the tool moves to the next
    model.
 
 Copy any response you want to keep directly from the terminal.
+
+## Claude-assisted analysis (`a`)
+
+Typing `a` sends the original prompt and the model's latest response to
+Claude (via OpenRouter, model set by `--judge-model`, default
+`anthropic/claude-sonnet-4.6`) for review. Claude checks the response
+against the prompt's requirements and recommends ONE of:
+
+- **Direct clean-up** — for minor mechanical issues (e.g. a missing
+  bracket, stray comma, truncated line). Claude prints a corrected version
+  of the response for you to copy; nothing is sent to the model.
+- **Suggested follow-up** — for substantive issues (e.g. missing content,
+  wrong structure). Claude drafts a short follow-up message. You can then
+  type that suggestion (verbatim or edited), or your own message, at the
+  prompt to send it to the model.
+- **No action** — if the response already looks complete and correct.
+
+Claude only *suggests* — you always decide what (if anything) to send.
