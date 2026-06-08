@@ -7,4 +7,4 @@ openai/gpt-oss-20b
 mistralai/mistral-small-3.1-24b-instruct
 arcee-ai/trinity-mini
 meta-llama/llama-3.2-3b-instruct
-qwen/qwen3-4b:free
+qwen/qwen3-8b
